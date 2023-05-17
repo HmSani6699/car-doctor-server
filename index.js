@@ -1,4 +1,4 @@
-const express = require ('express');
+const express = require('express');
 const app = express();
 const cors = require('cors');
 require('dotenv').config()
@@ -29,7 +29,13 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
 
+    const carDoctorcollection = client.db('carDoctor').collection('services');
 
+    app.get('/services', async (req, res) => {
+      const cursor = carDoctorcollection.find();
+      const result = await cursor.toArray();
+      res.send(result)
+    })
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
@@ -43,9 +49,9 @@ run().catch(console.dir);
 
 
 app.get('/', (req, res) => {
-    res.send('Hello World!')
-  })
+  res.send('Hello World!')
+})
 
-app.listen(port,()=>{
-    console.log('Server is running ', port);
+app.listen(port, () => {
+  console.log('Server is running ', port);
 })
