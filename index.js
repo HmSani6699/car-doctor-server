@@ -38,21 +38,31 @@ async function run() {
       res.send(result)
     })
 
-    app.get('/services/:id',async(req,res)=>{
+    app.get('/services/:id', async (req, res) => {
       const id = req.params.id;
-      const query = {_id:new ObjectId(id)};
+      const query = { _id: new ObjectId(id) };
       const result = await serviceCollection.findOne(query);
       res.send(result);
     })
 
 
     // Check out
-    app.post('/checkOut',async(req,res)=>{
+    app.get('/checkOut', async (req, res) => {
+      console.log(req.query.email,'query');
+      let query = {};
+      if (req.query?.email) {
+        query = { email: req.query.email }
+      }
+      const result = await checkOutCollection.find(query).toArray();
+      res.send(result)
+    })
+
+    app.post('/checkOut', async (req, res) => {
       const checkOut = req.body;
       console.log(checkOut);
       const result = await checkOutCollection.insertOne(checkOut);
       res.send(result);
-    }) 
+    })
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
