@@ -29,9 +29,6 @@ const client = new MongoClient(uri, {
 
 
 const verifyJwt = (req, res, next) => {
-  console.log('hiting verify jwt');
-  console.log(req.headers.authorization);
-
   const authorization = req.headers.authorization;
   if (!authorization) {
     return res.status(401).send({ error: true, message: 'unAuthrizes access' });
@@ -39,11 +36,11 @@ const verifyJwt = (req, res, next) => {
   const token = authorization.split(' ')[1]
   console.log(token);
 
-  jwt.verify(token,process.env.ACCESS_TOKEN_SECRET,(error,decoded)=>{
-    if(!error){
-      return res.status(403).send({error:true , message:'unAuthrizad access'})
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (error, decoded) => {
+    if (error) {
+      return res.status(403).send({ error: true, message: 'unAuthrizad access' })
     }
-    req.decoded=decoded;
+    req.decoded = decoded;
     next()
   })
 
@@ -62,7 +59,7 @@ async function run() {
     app.post('/jwt', (req, res) => {
       const user = req.body;
       console.log(user);
-      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: 20 });
       res.send({ token });
     })
 
@@ -84,7 +81,13 @@ async function run() {
 
     // Check out
     app.get('/checkOut', verifyJwt, async (req, res) => {
+      
+      const decoded = req.decoded;
+      console.log(decoded.email)
 
+      if(decoded.email !== req.query.email){
+        return res.status(401).send({error:1, message:'unAuthrized access'})
+      }
 
       // console.log(req.headers.authorization);
 
