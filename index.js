@@ -6,8 +6,8 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000;
 
 
- // Jwt
- const jwt = require('jsonwebtoken')
+// Jwt
+const jwt = require('jsonwebtoken')
 
 
 // Middleware
@@ -27,6 +27,29 @@ const client = new MongoClient(uri, {
   }
 });
 
+
+const verifyJwt = (req, res, next) => {
+  console.log('hiting verify jwt');
+  console.log(req.headers.authorization);
+
+  const authorization = req.headers.authorization;
+  if (!authorization) {
+    return res.status(401).send({ error: true, message: 'unAuthrizes access' });
+  }
+  const token = authorization.split(' ')[1]
+  console.log(token);
+
+  jwt.verify(token,process.env.ACCESS_TOKEN_SECRET,(error,decoded)=>{
+    if(!error){
+      return res.status(403).send({error:true , message:'unAuthrizad access'})
+    }
+    req.decoded=decoded;
+    next()
+  })
+
+}
+
+
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
@@ -36,11 +59,11 @@ async function run() {
     const checkOutCollection = client.db('carDoctor').collection('checkOut')
 
     // Jwt
-    app.post('/jwt',(req,res)=>{
-        const user = req.body;
-        console.log(user);
-        const token =jwt.sign(user,process.env.ACCESS_TOKEN_SECRET,{ expiresIn: '1h' });
-        res.send({token});
+    app.post('/jwt', (req, res) => {
+      const user = req.body;
+      console.log(user);
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+      res.send({ token });
     })
 
 
@@ -60,7 +83,11 @@ async function run() {
 
 
     // Check out
-    app.get('/checkOut', async (req, res) => {
+    app.get('/checkOut', verifyJwt, async (req, res) => {
+
+
+      // console.log(req.headers.authorization);
+
       let query = {};
       if (req.query?.email) {
         query = { email: req.query.email }
@@ -78,7 +105,7 @@ async function run() {
 
     app.delete('/checkOut/:id', async (req, res) => {
       const id = req.params.id;
-      const query = {_id:new ObjectId(id)};
+      const query = { _id: new ObjectId(id) };
       const result = await checkOutCollection.deleteOne(query);
       res.send(result)
     })
