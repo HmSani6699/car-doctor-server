@@ -11,7 +11,6 @@ app.use(cors());
 app.use(express.json())
 
 
-console.log();
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.fnxcgsn.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -48,7 +47,6 @@ async function run() {
 
     // Check out
     app.get('/checkOut', async (req, res) => {
-      console.log(req.query.email,'query');
       let query = {};
       if (req.query?.email) {
         query = { email: req.query.email }
@@ -59,9 +57,16 @@ async function run() {
 
     app.post('/checkOut', async (req, res) => {
       const checkOut = req.body;
-      console.log(checkOut);
+      // console.log(checkOut);
       const result = await checkOutCollection.insertOne(checkOut);
       res.send(result);
+    })
+
+    app.delete('/checkOut/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = {_id:new ObjectId(id)};
+      const result = await checkOutCollection.deleteOne(query);
+      res.send(result)
     })
 
     // Send a ping to confirm a successful connection
